@@ -1,0 +1,11 @@
+/* Extra global tweaks (keep minimal; Tailwind drives most styling). */
+
+@media print {
+  nav {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+}
+

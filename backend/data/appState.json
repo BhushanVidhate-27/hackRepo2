@@ -2,60 +2,100 @@
   "simulationParams": {
     "layers": [
       {
-        "thickness": 0.056,
-        "k": 67
+        "thickness": 0.03,
+        "k": 23
       },
       {
-        "thickness": 5.76,
-        "k": 0.04,
-        "material": "insulation"
+        "thickness": 0.56,
+        "k": 22
       },
       {
-        "thickness": 0.24,
-        "k": 534
+        "thickness": 0.25,
+        "k": 2
       }
     ],
     "boundary": {
-      "T_left": 665,
-      "T_inf": 65,
+      "T_left": 100,
+      "T_inf": 30,
       "h": 10
     },
     "area": 1,
-    "totalThickness": 6.056
+    "totalThickness": 0.8400000000000001
   },
   "simulationResult": {
-    "resistance": 144.10128525909778,
-    "heat_flux": 4.163738018860725,
+    "resistance": 0.2517588932806324,
+    "heat_flux": 278.0438024962713,
     "temperatures": [
-      665,
-      664.9965198607604,
-      65.41824514481596,
-      65.41637380188612
+      100,
+      99.63733417065704,
+      92.55985556166104,
+      57.80438024962712
     ]
   },
-  "updatedAt": "2026-04-08T18:27:55.424Z",
+  "updatedAt": "2026-04-08T18:48:32.519Z",
   "uiDraft": {
-    "hotTemp": "665",
-    "coldTemp": "65",
+    "hotTemp": "100",
+    "coldTemp": "30",
     "layers": [
       {
         "id": "1",
-        "thickness": "56",
-        "conductivity": "67",
-        "unit": "mm"
-      },
-      {
-        "id": "1775671881469944",
-        "thickness": "576",
-        "conductivity": "567",
+        "thickness": "3",
+        "conductivity": "23",
         "unit": "cm"
       },
       {
-        "id": "1775672671775156",
-        "thickness": "24",
-        "conductivity": "534",
+        "id": "1775673797013290",
+        "thickness": "56",
+        "conductivity": "22",
+        "unit": "cm"
+      },
+      {
+        "id": "1775673801068446",
+        "thickness": "25",
+        "conductivity": "2",
         "unit": "cm"
       }
     ]
+  },
+  "reportSnapshot": {
+    "report": {
+      "id": "TSA-2026-0412",
+      "date": "April 9, 2026",
+      "generatedAt": "2026-04-08T18:36:20.477Z"
+    },
+    "simulationParams": {
+      "layers": [
+        {
+          "thickness": 0.056,
+          "k": 67
+        },
+        {
+          "thickness": 5.76,
+          "k": 0.04,
+          "material": "insulation"
+        },
+        {
+          "thickness": 0.24,
+          "k": 534
+        }
+      ],
+      "boundary": {
+        "T_left": 665,
+        "T_inf": 65,
+        "h": 10
+      },
+      "area": 1,
+      "totalThickness": 6.056
+    },
+    "simulationResult": {
+      "resistance": 144.10128525909778,
+      "heat_flux": 4.163738018860725,
+      "temperatures": [
+        665,
+        664.9965198607604,
+        65.41824514481596,
+        65.41637380188612
+      ]
+    }
   }
 }

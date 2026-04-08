@@ -34,6 +34,39 @@ function ensureLucide() {
   }
 }
 
+function scrollToSection(sectionId) {
+  const el = document.getElementById(sectionId);
+  if (!el) return false;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  return true;
+}
+
+function bindNavbarScrollLinks() {
+  const links = document.querySelectorAll("[data-scroll-target]");
+  if (!links.length) return;
+
+  links.forEach((a) => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const target = a.getAttribute("data-scroll-target");
+      if (!target) return;
+
+      // If we're not on home, go home first, then scroll.
+      if (window.location.hash !== "#/") {
+        navigate("/");
+      }
+
+      let tries = 0;
+      const timer = setInterval(() => {
+        tries++;
+        if (scrollToSection(target) || tries > 30) {
+          clearInterval(timer);
+        }
+      }, 50);
+    });
+  });
+}
+
 defineRoutes({
   "/": renderHomePage,
   "/dashboard": renderInputDashboard,
@@ -78,6 +111,7 @@ async function renderRoot({ path, handler }) {
   `;
 
   if (isDash) bindDashboardNav();
+  if (!isDash) bindNavbarScrollLinks();
   ensureLucide();
 
   try {

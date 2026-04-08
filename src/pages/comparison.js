@@ -275,21 +275,27 @@ export function renderComparisonScreen() {
           </div>
         `;
 
-        document.getElementById("applyBBtn")?.addEventListener("click", async () => {
-          sessionStorage.setItem("simulationParams", JSON.stringify(idealParams));
-          sessionStorage.setItem("simulationResult", JSON.stringify(idealResult));
+        let applied = false;
+        const applyBtn = document.getElementById("applyBBtn");
+
+        const chartInstance = renderCompareChart(chart, { showConfigB: false });
+
+        applyBtn?.addEventListener("click", () => {
+          if (applied) return;
+          applied = true;
+          applyBtn.textContent = "Configuration B Applied";
+          applyBtn.setAttribute("disabled", "true");
+
+          // Show the green line only in Compare; do not redirect or overwrite saved simulation.
           try {
-            await apiFetch("/api/state", {
-              method: "PUT",
-              json: { simulationParams: idealParams, simulationResult: idealResult },
-            });
+            if (chartInstance?.data?.datasets?.[1]) {
+              chartInstance.data.datasets[1].hidden = false;
+              chartInstance.update();
+            }
           } catch {
             // ignore
           }
-          navigate("/results");
         });
-
-        renderCompareChart(chart);
       } catch (e) {
         const msg = e?.details?.error || e?.message || "Failed to compute ideal configuration";
         root.innerHTML = `
@@ -303,7 +309,7 @@ export function renderComparisonScreen() {
   };
 }
 
-function renderCompareChart(rows) {
+function renderCompareChart(rows, { showConfigB } = { showConfigB: true }) {
   const canvas = document.getElementById("compareChart");
   if (!(canvas instanceof HTMLCanvasElement)) return;
   const ctx = canvas.getContext("2d");
@@ -331,6 +337,7 @@ function renderCompareChart(rows) {
           borderWidth: 3,
           pointRadius: 0,
           tension: 0.35,
+          hidden: !showConfigB,
         },
       ],
     },
@@ -361,6 +368,8 @@ function renderCompareChart(rows) {
       },
     },
   });
+
+  return canvas.__chart;
 }
 
 function escapeHtml(s) {

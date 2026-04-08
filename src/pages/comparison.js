@@ -272,10 +272,33 @@ export function renderComparisonScreen() {
                 Apply Configuration B
               </button>
             </div>
+
+            <div class="mt-4 flex justify-center">
+              <button id="proceedReportBtn" class="${buttonClass({ variant: "outline", className: "px-8" })}">
+                Proceed to Report <i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>
+              </button>
+            </div>
           </div>
         `;
 
         document.getElementById("applyBBtn")?.addEventListener("click", async () => {
+          // Pass a “just applied” summary to Results so it can show B stats at top.
+          try {
+            sessionStorage.setItem(
+              "appliedConfigB",
+              JSON.stringify({
+                appliedAt: Date.now(),
+                material: bestName,
+                bFlux,
+                bR,
+                fluxReductionPct,
+                rIncreasePct,
+              })
+            );
+          } catch {
+            // ignore storage failures
+          }
+
           sessionStorage.setItem("simulationParams", JSON.stringify(idealParams));
           sessionStorage.setItem("simulationResult", JSON.stringify(idealResult));
           try {
@@ -287,6 +310,10 @@ export function renderComparisonScreen() {
             // ignore
           }
           navigate("/results");
+        });
+
+        document.getElementById("proceedReportBtn")?.addEventListener("click", () => {
+          navigate("/report");
         });
 
         renderCompareChart(chart);

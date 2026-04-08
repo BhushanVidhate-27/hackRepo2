@@ -74,6 +74,9 @@ function renderError(error) {
               <button id="retryBtn" class="${buttonClass({
                 className: "bg-[#3A86FF] hover:bg-[#2A76EF] text-white",
               })}">Retry</button>
+              <button id="proceedBtn" class="${buttonClass({
+                className: "bg-[#3A86FF] hover:bg-[#2A76EF] text-white",
+              })}">Proceed to Results</button>
             </div>
           </div>
         </div>
@@ -165,6 +168,7 @@ export function renderSimulationScreen() {
 function bindErrorButtons() {
   document.getElementById("backBtn")?.addEventListener("click", () => navigate("/dashboard"));
   document.getElementById("retryBtn")?.addEventListener("click", () => navigate("/simulation"));
+  document.getElementById("proceedBtn")?.addEventListener("click", () => navigate("/results"));
 }
 
 function escapeHtml(s) {

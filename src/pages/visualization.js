@@ -1,4 +1,6 @@
 import { apiFetch } from "../lib/api.js";
+import { buttonClass } from "../lib/uiPrimitives.js";
+import { navigate } from "../router.js";
 
 function safeParse(raw) {
   if (!raw) return null;
@@ -200,9 +202,21 @@ export function renderLayerVisualization() {
                 `;
               })
               .join("")}
+
+            <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-6 border-gray-200">
+              <h3 class="text-lg text-[#0A2540] mb-2">Next Step</h3>
+              <p class="text-sm text-gray-600">Proceed to compare configurations.</p>
+              <button id="proceedCompareBtn" class="${buttonClass({
+                className: "w-full bg-[#3A86FF] hover:bg-[#2A76EF] text-white",
+              })}">
+                Proceed to Comparison <i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>
+              </button>
+            </div>
           </div>
         </div>
       `;
+
+      document.getElementById("proceedCompareBtn")?.addEventListener("click", () => navigate("/comparison"));
     },
   };
 }

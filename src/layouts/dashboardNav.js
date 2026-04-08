@@ -52,7 +52,7 @@ export function renderDashboardNav(activePath) {
                 className: "text-[#0A2540] hover:bg-gray-100",
               })}"
             >
-              Clear saved
+              Clear
             </button>
           </div>
         </div>
@@ -78,7 +78,9 @@ export function bindDashboardNav() {
     sessionStorage.removeItem("simulationParams");
     sessionStorage.removeItem("simulationResult");
     sessionStorage.removeItem("uiDraft");
+    sessionStorage.removeItem("comparisonCache");
     window.location.hash = "#/dashboard";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
   });
 }
 

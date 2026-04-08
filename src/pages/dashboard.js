@@ -329,30 +329,33 @@ function renderLayerRow(layer, index, layerCount) {
         }
       </div>
 
-      <div class="grid md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)] gap-4 items-end">
         <div>
           <label class="text-sm text-gray-700 mb-2 block">Thickness</label>
-          <div class="flex gap-2">
-            <input
-              data-field="thickness"
-              type="number"
-              placeholder="${layer.unit === "mm" ? "e.g. 5–500" : "e.g. 1–50"}"
-              class="${inputClass} flex-1"
-              value="${escapeHtml(layer.thickness)}"
-            />
-            <select data-field="unit" class="${inputClass} w-20">
-              <option value="cm" ${layer.unit === "cm" ? "selected" : ""}>cm</option>
-              <option value="mm" ${layer.unit === "mm" ? "selected" : ""}>mm</option>
-            </select>
-          </div>
+          <input
+            data-field="thickness"
+            type="number"
+            placeholder="${layer.unit === "mm" ? "e.g. 5–500" : "e.g. 1–50"}"
+            class="${inputClass} h-11 text-base w-full"
+            value="${escapeHtml(layer.thickness)}"
+          />
         </div>
+
+        <div>
+          <label class="text-sm text-gray-700 mb-2 block">Unit</label>
+          <select data-field="unit" class="${inputClass} h-11 text-base w-full">
+            <option value="cm" ${layer.unit === "cm" ? "selected" : ""}>cm</option>
+            <option value="mm" ${layer.unit === "mm" ? "selected" : ""}>mm</option>
+          </select>
+        </div>
+
         <div>
           <label class="text-sm text-gray-700 mb-2 block">k (W/m·K)</label>
           <input
             data-field="conductivity"
             type="number"
             placeholder="e.g. 0.02–2.0"
-            class="${inputClass} flex-1"
+            class="${inputClass} h-11 text-base w-full"
             value="${escapeHtml(layer.conductivity)}"
           />
         </div>

@@ -194,6 +194,14 @@ export function renderReportPreview() {
                 configurations.
               </p>
             </section>
+
+            <div class="pt-6 border-t border-gray-200 flex justify-end">
+              <button id="proceedHomeBtn" class="${buttonClass({
+                className: "bg-[#3A86FF] hover:bg-[#2A76EF] text-white px-8",
+              })}">
+                Proceed to Home <i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -242,6 +250,10 @@ export function renderReportPreview() {
           json: snapshot,
         });
         downloadBlob(filename || `thermal-report-${new Date().toISOString().slice(0, 10)}.json`, blob);
+      });
+
+      document.getElementById("proceedHomeBtn")?.addEventListener("click", () => {
+        window.location.hash = "#/";
       });
     },
   };

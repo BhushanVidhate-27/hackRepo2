@@ -272,6 +272,12 @@ export function renderComparisonScreen() {
                 Apply Configuration B
               </button>
             </div>
+
+            <div class="mt-4 flex justify-center">
+              <button id="proceedReportBtn" class="${buttonClass({ variant: "outline", className: "px-8" })}">
+                Proceed to Report <i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>
+              </button>
+            </div>
           </div>
         `;
 
@@ -280,13 +286,31 @@ export function renderComparisonScreen() {
 
         const chartInstance = renderCompareChart(chart, { showConfigB: false });
 
-        applyBtn?.addEventListener("click", () => {
+        applyBtn?.addEventListener("click", async () => {
           if (applied) return;
           applied = true;
           applyBtn.textContent = "Configuration B Applied";
           applyBtn.setAttribute("disabled", "true");
 
-          // Show the green line only in Compare; do not redirect or overwrite saved simulation.
+          // Pass a “just applied” summary to Report/Results so it can show B stats at top.
+          try {
+            sessionStorage.setItem(
+              "appliedConfigB",
+              JSON.stringify({
+                appliedAt: Date.now(),
+                material: bestName,
+                bFlux,
+                bR,
+                fluxReductionPct,
+                rIncreasePct,
+              })
+            );
+          } catch {
+            // ignore storage failures
+          }
+
+          sessionStorage.setItem("simulationParams", JSON.stringify(idealParams));
+          sessionStorage.setItem("simulationResult", JSON.stringify(idealResult));
           try {
             if (chartInstance?.data?.datasets?.[1]) {
               chartInstance.data.datasets[1].hidden = false;
@@ -295,6 +319,10 @@ export function renderComparisonScreen() {
           } catch {
             // ignore
           }
+        });
+
+        document.getElementById("proceedReportBtn")?.addEventListener("click", () => {
+          navigate("/report");
         });
       } catch (e) {
         const msg = e?.details?.error || e?.message || "Failed to compute ideal configuration";

@@ -97,6 +97,14 @@ async function renderRoot({ path, handler }) {
   const mount = document.getElementById("app");
   if (!mount) return;
 
+  // Single-page apps should reset scroll between routes.
+  // Prevents landing mid-page (e.g., graph section) after navigation.
+  try {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  } catch {
+    window.scrollTo(0, 0);
+  }
+
   const isDash = isDashboardRoute(path);
   const header = isDash ? renderDashboardNav(path) : renderNavbar();
 

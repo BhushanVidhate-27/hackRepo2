@@ -1,0 +1,67 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="1200" y1="0" x2="0" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3A86FF" stop-opacity="0.18"/>
+      <stop offset="0.6" stop-color="#0A2540" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#22C55E" stop-opacity="0.10"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3A86FF"/>
+      <stop offset="1" stop-color="#0A2540"/>
+    </linearGradient>
+    <filter id="shadow" x="-40" y="-40" width="1280" height="980" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#0A2540" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="900" rx="48" fill="url(#bg)"/>
+
+  <!-- "Solver" panel -->
+  <g filter="url(#shadow)">
+    <rect x="120" y="130" width="960" height="640" rx="28" fill="white"/>
+    <rect x="120" y="130" width="960" height="80" rx="28" fill="#F8F9FB"/>
+    <rect x="160" y="158" width="140" height="24" rx="12" fill="#E5E7EB"/>
+    <rect x="320" y="158" width="220" height="24" rx="12" fill="#E5E7EB"/>
+    <rect x="560" y="158" width="180" height="24" rx="12" fill="#E5E7EB"/>
+
+    <!-- Left column: layers -->
+    <rect x="170" y="250" width="360" height="440" rx="20" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="200" y="300" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" font-size="22" fill="#0A2540" font-weight="600">Composite Layers</text>
+
+    <g>
+      <rect x="200" y="340" width="300" height="74" rx="16" fill="#F8F9FB" stroke="#E5E7EB"/>
+      <rect x="222" y="364" width="140" height="12" rx="6" fill="#CBD5E1"/>
+      <rect x="222" y="386" width="220" height="12" rx="6" fill="#E2E8F0"/>
+      <rect x="440" y="358" width="44" height="30" rx="15" fill="#3A86FF" fill-opacity="0.14"/>
+      <text x="452" y="379" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" font-size="14" fill="#3A86FF" font-weight="700">k</text>
+    </g>
+    <g>
+      <rect x="200" y="430" width="300" height="74" rx="16" fill="#F8F9FB" stroke="#E5E7EB"/>
+      <rect x="222" y="454" width="170" height="12" rx="6" fill="#CBD5E1"/>
+      <rect x="222" y="476" width="200" height="12" rx="6" fill="#E2E8F0"/>
+      <rect x="440" y="448" width="44" height="30" rx="15" fill="#0A2540" fill-opacity="0.10"/>
+      <text x="452" y="469" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" font-size="14" fill="#0A2540" font-weight="700">k</text>
+    </g>
+    <g>
+      <rect x="200" y="520" width="300" height="74" rx="16" fill="#F8F9FB" stroke="#E5E7EB"/>
+      <rect x="222" y="544" width="150" height="12" rx="6" fill="#CBD5E1"/>
+      <rect x="222" y="566" width="230" height="12" rx="6" fill="#E2E8F0"/>
+      <rect x="440" y="538" width="44" height="30" rx="15" fill="#22C55E" fill-opacity="0.16"/>
+      <text x="452" y="559" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" font-size="14" fill="#16A34A" font-weight="700">k</text>
+    </g>
+
+    <!-- Right column: heat map -->
+    <rect x="570" y="250" width="470" height="440" rx="20" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="600" y="300" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" font-size="22" fill="#0A2540" font-weight="600">Temperature Field</text>
+
+    <rect x="610" y="336" width="390" height="280" rx="18" fill="url(#accent)" fill-opacity="0.16"/>
+    <path d="M610 520 C700 460, 780 600, 860 520 C930 450, 960 470, 1000 420 L1000 616 L610 616 Z" fill="#3A86FF" fill-opacity="0.16"/>
+    <path d="M610 470 C690 420, 760 520, 835 470 C905 420, 945 430, 1000 380 L1000 616 L610 616 Z" fill="#22C55E" fill-opacity="0.14"/>
+    <path d="M610 420 C690 370, 760 460, 835 420 C905 370, 950 380, 1000 340 L1000 616 L610 616 Z" fill="#F59E0B" fill-opacity="0.16"/>
+
+    <!-- Bottom mini-metrics -->
+    <rect x="610" y="638" width="122" height="36" rx="18" fill="#F8F9FB" stroke="#E5E7EB"/>
+    <rect x="746" y="638" width="122" height="36" rx="18" fill="#F8F9FB" stroke="#E5E7EB"/>
+    <rect x="882" y="638" width="118" height="36" rx="18" fill="#F8F9FB" stroke="#E5E7EB"/>
+  </g>
+</svg>

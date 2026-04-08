@@ -10,9 +10,9 @@ export function renderNavbar() {
           </a>
 
           <div class="hidden md:flex items-center gap-8">
-            <a href="#features" class="text-[#0A2540] hover:text-[#3A86FF] transition-colors">Features</a>
-            <a href="#services" class="text-[#0A2540] hover:text-[#3A86FF] transition-colors">Services</a>
-            <a href="#team" class="text-[#0A2540] hover:text-[#3A86FF] transition-colors">Team</a>
+            <a href="#/" data-scroll-target="features" class="text-[#0A2540] hover:text-[#3A86FF] transition-colors">Features</a>
+            <a href="#/" data-scroll-target="services" class="text-[#0A2540] hover:text-[#3A86FF] transition-colors">Services</a>
+            <a href="#/" data-scroll-target="team" class="text-[#0A2540] hover:text-[#3A86FF] transition-colors">Team</a>
           </div>
 
           <div class="flex items-center gap-4">

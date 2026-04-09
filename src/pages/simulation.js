@@ -1,3 +1,5 @@
+import { apiFetch, apiFetchWithRetry } from "../lib/api.js";
+import { computeWallLocal } from "../lib/localHeatCompute.js";
 import { apiFetch } from "../lib/api.js";
 import { formatApiError } from "../lib/apiError.js";
 import { recordMaterialUsageFromParams } from "../lib/materialUsage.js";
@@ -34,7 +36,7 @@ function renderRunning() {
             </div>
           </div>
 
-          <div class="space-y-4 text-left max-w-md mx-auto">
+          <div id="simProgressSteps" class="space-y-4 text-left max-w-md mx-auto">
             ${renderStep("Validating inputs", "green", true)}
             ${renderStep("Boundary conditions applied", "green", true)}
             ${renderStep("Solving heat transfer equations...", "blue", true)}
@@ -86,6 +88,30 @@ function renderError(error) {
       </div>
     </div>
   `;
+}
+
+function isValidComputeResult(result, layerCount) {
+  if (!result || typeof result !== "object") return false;
+  if (typeof result.heat_flux !== "number" || typeof result.resistance !== "number") return false;
+  if (!Array.isArray(result.temperatures)) return false;
+  if (result.temperatures.length !== layerCount + 1) return false;
+  return true;
+}
+
+function paintSimulationComplete() {
+  const el = document.getElementById("simProgressSteps");
+  if (!el) return;
+  el.innerHTML = `
+            ${renderStep("Validating inputs", "green", true)}
+            ${renderStep("Boundary conditions applied", "green", true)}
+            ${renderStep("Solving heat transfer equations...", "green", true)}
+            ${renderStep("Generating visualizations", "green", true)}
+          `;
+  try {
+    window.lucide?.createIcons?.();
+  } catch {
+    // ignore
+  }
 }
 
 function renderStep(label, tone, done, isError = false) {
@@ -146,15 +172,35 @@ export function renderSimulationScreen() {
       }
 
       try {
-        // Best-effort local usage stats
+        let materials = {};
         try {
-          const materials = await apiFetch("/api/materials");
+          materials = (await apiFetch("/api/materials")) || {};
+        } catch {
+          // optional
+        }
+
+        try {
           recordMaterialUsageFromParams(params, materials || {});
         } catch {
           // ignore analytics failures
         }
 
-        const result = await apiFetch("/api/compute", { method: "POST", json: params });
+        const layerCount = (params.layers || []).length;
+        let result = null;
+        try {
+          result = await apiFetchWithRetry("/api/compute", { method: "POST", json: params });
+        } catch {
+          result = null;
+        }
+
+        if (!isValidComputeResult(result, layerCount)) {
+          const local = computeWallLocal(params, materials || {});
+          const { __computedLocally, ...rest } = local;
+          result = rest;
+        } else {
+          delete result.__computedLocally;
+        }
+
         sessionStorage.setItem(RESULT_KEY, JSON.stringify(result));
 
         try {
@@ -166,6 +212,7 @@ export function renderSimulationScreen() {
           // ignore persistence failures
         }
 
+        paintSimulationComplete();
         navigate("/results");
       } catch (e) {
         captureException(e, { stage: "simulation-compute" });

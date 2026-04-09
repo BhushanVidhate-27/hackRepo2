@@ -65,15 +65,9 @@ function buildInitialState() {
   return state;
 }
 
-let persistTimer = null;
-
 function schedulePersistDraft(draft) {
   sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-
-  if (persistTimer) window.clearTimeout(persistTimer);
-  persistTimer = window.setTimeout(() => {
-    apiFetch("/api/state", { method: "PUT", json: { uiDraft: draft } }).catch(() => {});
-  }, 250);
+  apiFetch("/api/state", { method: "PUT", json: { uiDraft: draft } }).catch(() => {});
 }
 
 function totalThicknessCm(layers) {

@@ -6,7 +6,9 @@ const router = express.Router();
 router.get("/state", async (req, res, next) => {
   try {
     const state = await getState();
-    if (!state) return res.json({ state: null, updatedAt: null });
+    if (state == null || typeof state !== "object" || Array.isArray(state)) {
+      return res.json({ state: null, updatedAt: null });
+    }
     const { updatedAt = null, ...rest } = state;
     res.json({ state: rest, updatedAt });
   } catch (e) {

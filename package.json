@@ -20,16 +20,11 @@
     "format:check": "prettier --check \"src/**/*.{js,css,html}\" \"*.{js,ts,json}\"",
     "test": "vitest run",
     "test:watch": "vitest",
-<<<<<<< HEAD
-    "catalog:export": "node scripts/export-insulation-catalog.mjs"
-  
-=======
-    "catalog:export": "node scripts/export-insulation-catalog.mjs",
-    "frontend:dev": "vite",
-    "frontend:build": "vite build",
-    "backend:dev": "nodemon backend/server.js",
-    "backend:start": "node backend/server.js"
->>>>>>> 6aa5182 (lastToday)
+  "catalog:export": "node scripts/export-insulation-catalog.mjs",
+  "frontend:dev": "vite",
+  "frontend:build": "vite build",
+  "backend:dev": "nodemon backend/server.js",
+  "backend:start": "node backend/server.js"
   },
   "dependencies": {
     "@sentry/browser": "^8.55.0",

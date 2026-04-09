@@ -3,17 +3,25 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/export-insulation-catalog.mjs",
     "build": "vite build",
     "preview": "vite preview",
+
+    "backend": "node backend/server.js",
+    "backend:dev": "nodemon backend/server.js",
+
+    "dev:full": "concurrently \"npm run backend\" \"npm run dev\"",
+
     "lint": "eslint \"src/**/*.js\" \"scripts/**/*.mjs\"",
     "format": "prettier --write \"src/**/*.{js,css,html}\" \"*.{js,ts,json}\" \".github/**/*.yml\"",
     "format:check": "prettier --check \"src/**/*.{js,css,html}\" \"*.{js,ts,json}\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "catalog:export": "node scripts/export-insulation-catalog.mjs"
+  
   },
   "dependencies": {
     "@sentry/browser": "^8.55.0",

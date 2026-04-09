@@ -1,4 +1,4 @@
-import { apiFetch } from "../lib/api.js";
+import { apiFetch, apiFetchWithRetry } from "../lib/api.js";
 import { formatApiError } from "../lib/apiError.js";
 import {
   INSULATION_CATALOG_META,
@@ -11,6 +11,7 @@ import { readMaterialUsageStats } from "../lib/materialUsage.js";
 import { captureException } from "../lib/telemetry.js";
 import { buttonClass, inputClass } from "../lib/uiPrimitives.js";
 import { navigate } from "../router.js";
+import { computeWallLocal, DEFAULT_MATERIALS } from "../lib/localHeatCompute.js";
 
 const COMPARE_INSULATION_MODE_KEY = "compareInsulationMode";
 
@@ -411,7 +412,10 @@ async function mountComparisonView(root, currentParams, currentResult) {
     });
   });
 
-  document.getElementById("applyBBtn")?.addEventListener("click", async () => {
+  const applyBtn = document.getElementById("applyBBtn");
+  const chartInstance = renderCompareChart(chart, { showConfigB: false });
+
+  applyBtn?.addEventListener("click", async () => {
     try {
       sessionStorage.setItem(
         "appliedConfigB",
@@ -439,7 +443,20 @@ async function mountComparisonView(root, currentParams, currentResult) {
     } catch {
       // ignore
     }
-    navigate("/results");
+
+    if (applyBtn) {
+      applyBtn.textContent = "Configuration B Applied";
+      applyBtn.setAttribute("disabled", "true");
+    }
+
+    try {
+      if (chartInstance?.data?.datasets?.[1]) {
+        chartInstance.data.datasets[1].hidden = false;
+        chartInstance.update();
+      }
+    } catch {
+      // ignore
+    }
   });
 
   document.getElementById("proceedReportBtn")?.addEventListener("click", () => {
@@ -451,8 +468,6 @@ async function mountComparisonView(root, currentParams, currentResult) {
   } catch {
     // ignore
   }
-
-  renderCompareChart(chart);
 }
 
   export function renderComparisonScreen() {
@@ -707,49 +722,6 @@ async function mountComparisonView(root, currentParams, currentResult) {
           </div>
         `;
 
-        let applied = false;
-        const applyBtn = document.getElementById("applyBBtn");
-
-        const chartInstance = renderCompareChart(chart, { showConfigB: false });
-
-        applyBtn?.addEventListener("click", async () => {
-          if (applied) return;
-          applied = true;
-          applyBtn.textContent = "Configuration B Applied";
-          applyBtn.setAttribute("disabled", "true");
-
-          // Pass a “just applied” summary to Report/Results so it can show B stats at top.
-          try {
-            sessionStorage.setItem(
-              "appliedConfigB",
-              JSON.stringify({
-                appliedAt: Date.now(),
-                material: bestName,
-                bFlux,
-                bR,
-                fluxReductionPct,
-                rIncreasePct,
-              })
-            );
-          } catch {
-            // ignore storage failures
-          }
-
-          sessionStorage.setItem("simulationParams", JSON.stringify(idealParams));
-          sessionStorage.setItem("simulationResult", JSON.stringify(idealResult));
-          try {
-            if (chartInstance?.data?.datasets?.[1]) {
-              chartInstance.data.datasets[1].hidden = false;
-              chartInstance.update();
-            }
-          } catch {
-            // ignore
-          }
-        });
-
-        document.getElementById("proceedReportBtn")?.addEventListener("click", () => {
-          navigate("/report");
-        });
         await mountComparisonView(root, currentParams, currentResult);
       } catch (e) {
         captureException(e, { stage: "comparison-initial" });
@@ -765,11 +737,11 @@ async function mountComparisonView(root, currentParams, currentResult) {
   };
 }
 
-function renderCompareChart(rows) {
+function renderCompareChart(rows, options = {}) {
   const canvas = document.getElementById("compareChart");
-  if (!(canvas instanceof HTMLCanvasElement)) return;
+  if (!(canvas instanceof HTMLCanvasElement)) return null;
   const ctx = canvas.getContext("2d");
-  if (!ctx || !window.Chart) return;
+  if (!ctx || !window.Chart) return null;
 
   if (canvas.__chart) canvas.__chart.destroy();
 
@@ -793,6 +765,7 @@ function renderCompareChart(rows) {
           borderWidth: 3,
           pointRadius: 0,
           tension: 0.35,
+          hidden: options.showConfigB === false,
         },
       ],
     },
@@ -823,4 +796,6 @@ function renderCompareChart(rows) {
       },
     },
   });
+
+  return canvas.__chart;
 }

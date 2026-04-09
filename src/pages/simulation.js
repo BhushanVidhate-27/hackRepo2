@@ -1,6 +1,5 @@
 import { apiFetch, apiFetchWithRetry } from "../lib/api.js";
 import { computeWallLocal } from "../lib/localHeatCompute.js";
-import { apiFetch } from "../lib/api.js";
 import { formatApiError } from "../lib/apiError.js";
 import { recordMaterialUsageFromParams } from "../lib/materialUsage.js";
 import { captureException } from "../lib/telemetry.js";

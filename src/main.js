@@ -32,6 +32,7 @@ function isDashboardRoute(path) {
     path.includes("simulation") ||
     path.includes("results") ||
     path.includes("visualization") ||
+    path.includes("compare") ||
     path.includes("comparison") ||
     path.includes("report")
   );
@@ -84,6 +85,7 @@ defineRoutes({
   "/simulation": renderSimulationScreen,
   "/results": renderResultsDashboard,
   "/visualization": renderLayerVisualization,
+  "/compare": renderComparisonScreen,
   "/comparison": renderComparisonScreen,
   "/report": renderReportPreview,
   "*": () => ({

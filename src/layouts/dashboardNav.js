@@ -5,7 +5,7 @@ const navItems = [
   { path: "/dashboard", label: "Input", icon: "home" },
   { path: "/results", label: "Results", icon: "bar-chart-3" },
   { path: "/visualization", label: "Visualization", icon: "layers" },
-  { path: "/comparison", label: "Compare", icon: "git-compare" },
+  { path: "/compare", label: "Compare", icon: "git-compare" },
   { path: "/report", label: "Report", icon: "file-text" },
 ];
 

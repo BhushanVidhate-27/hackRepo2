@@ -314,7 +314,7 @@ export function renderResultsDashboard() {
 
       document.getElementById("viewLayersBtn")?.addEventListener("click", () => navigate("/visualization"));
       document.getElementById("goVizBtn")?.addEventListener("click", () => navigate("/visualization"));
-      document.getElementById("goCompareBtn")?.addEventListener("click", () => navigate("/comparison"));
+      document.getElementById("goCompareBtn")?.addEventListener("click", () => navigate("/compare"));
       document.getElementById("proceedNextBtn")?.addEventListener("click", () => navigate("/visualization"));
 
       document.getElementById("exportBtn")?.addEventListener("click", () => {

@@ -241,7 +241,7 @@ export function renderLayerVisualization() {
         </div>
       `;
 
-      document.getElementById("proceedCompareBtn")?.addEventListener("click", () => navigate("/comparison"));
+      document.getElementById("proceedCompareBtn")?.addEventListener("click", () => navigate("/compare"));
 
       try {
         window.lucide?.createIcons?.();

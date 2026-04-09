@@ -1,6 +1,11 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
-import path from "path";
 import tailwindcss from "@tailwindcss/vite";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(path.join(__dirname, "package.json"), "utf8"));
 
 export default defineConfig({
   plugins: [tailwindcss()],
@@ -25,6 +30,8 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(pkg.version),
   },
 });
 

@@ -4,6 +4,7 @@ import { navigate } from "../router.js";
 
 const DRAFT_KEY = "uiDraft";
 const PARAMS_KEY = "simulationParams";
+const MAX_JSON_IMPORT_BYTES = 256 * 1024;
 
 function safeParse(raw) {
   if (!raw) return null;
@@ -76,6 +77,127 @@ function totalThicknessCm(layers) {
   }, 0);
 }
 
+/**
+ * @param {unknown} parsed
+ * @returns {{ kind: "uiDraft" | "simulationParams", data: object }}
+ */
+function normalizeImportedPayload(parsed) {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("JSON root must be an object.");
+  }
+  const root = parsed;
+  if (root.uiDraft && typeof root.uiDraft === "object" && !Array.isArray(root.uiDraft)) {
+    return { kind: "uiDraft", data: root.uiDraft };
+  }
+  if (root.simulationParams && typeof root.simulationParams === "object" && !Array.isArray(root.simulationParams)) {
+    return { kind: "simulationParams", data: root.simulationParams };
+  }
+  if (root.boundary && typeof root.boundary === "object" && Array.isArray(root.layers)) {
+    return { kind: "simulationParams", data: root };
+  }
+  if ("layers" in root || "hotTemp" in root || "coldTemp" in root) {
+    return { kind: "uiDraft", data: root };
+  }
+  throw new Error('Expected "uiDraft", "simulationParams", boundary+layers, or uiDraft-shaped fields.');
+}
+
+/**
+ * @param {object} d
+ * @returns {{ hotTemp: string, coldTemp: string, layers: { id: string, thickness: string, conductivity: string, unit: string }[] }}
+ */
+function draftFromUiDraftObject(d) {
+  const hotTemp =
+    d.hotTemp !== undefined && d.hotTemp !== null && d.hotTemp !== "" ? String(d.hotTemp).trim() : "";
+  const coldTemp =
+    d.coldTemp !== undefined && d.coldTemp !== null && d.coldTemp !== "" ? String(d.coldTemp).trim() : "";
+  if (!Array.isArray(d.layers) || !d.layers.length) {
+    throw new Error("uiDraft.layers must be a non-empty array.");
+  }
+  const layers = d.layers.map((raw, idx) => {
+    const l = raw && typeof raw === "object" ? raw : {};
+    const unit = l.unit === "mm" ? "mm" : "cm";
+    const thickness =
+      l.thickness !== undefined && l.thickness !== null ? String(l.thickness).trim() : "";
+    const conductivity =
+      l.conductivity !== undefined && l.conductivity !== null ? String(l.conductivity).trim() : "";
+    const id = typeof l.id === "string" && l.id ? l.id : uid();
+    if (!thickness || !conductivity) {
+      throw new Error(`layers[${idx}]: thickness and conductivity are required.`);
+    }
+    return { id, thickness, conductivity, unit };
+  });
+  return { hotTemp, coldTemp, layers };
+}
+
+/**
+ * @param {object} p
+ * @returns {{ hotTemp: string, coldTemp: string, layers: { id: string, thickness: string, conductivity: string, unit: string }[] }}
+ */
+function draftFromSimulationParamsObject(p) {
+  const b = p.boundary;
+  if (!b || typeof b !== "object") {
+    throw new Error("simulationParams.boundary is required.");
+  }
+  const tl = b.T_left;
+  const tinf = b.T_inf;
+  if (!Number.isFinite(tl) || !Number.isFinite(tinf)) {
+    throw new Error("boundary.T_left and boundary.T_inf must be finite numbers.");
+  }
+  if (!Array.isArray(p.layers) || !p.layers.length) {
+    throw new Error("simulationParams.layers must be a non-empty array.");
+  }
+  const layers = p.layers.map((raw, idx) => {
+    const l = raw && typeof raw === "object" ? raw : {};
+    const th = l.thickness;
+    const k = l.k;
+    if (!Number.isFinite(th) || th <= 0) {
+      throw new Error(`layers[${idx}].thickness must be a positive number (meters).`);
+    }
+    if (!Number.isFinite(k) || k <= 0) {
+      throw new Error(`layers[${idx}].k must be a positive number (W/m·K).`);
+    }
+    return {
+      id: String(idx + 1),
+      thickness: String(Number((th * 100).toFixed(4))),
+      conductivity: String(k),
+      unit: "cm",
+    };
+  });
+  return { hotTemp: String(tl), coldTemp: String(tinf), layers };
+}
+
+/**
+ * @param {string} text
+ */
+function parseImportedJsonText(text) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON.");
+  }
+  const norm = normalizeImportedPayload(parsed);
+  if (norm.kind === "uiDraft") {
+    return draftFromUiDraftObject(norm.data);
+  }
+  return draftFromSimulationParamsObject(norm.data);
+}
+
+function buildExampleJsonBlob() {
+  const example = {
+    version: 1,
+    uiDraft: {
+      hotTemp: "35",
+      coldTemp: "10",
+      layers: [
+        { thickness: "12", conductivity: "0.8", unit: "cm" },
+        { thickness: "50", conductivity: "0.04", unit: "mm" },
+      ],
+    },
+  };
+  return new Blob([`${JSON.stringify(example, null, 2)}\n`], { type: "application/json" });
+}
+
 export function renderInputDashboard() {
   const state = buildInitialState();
   const totalCm = totalThicknessCm(state.layers);
@@ -89,6 +211,21 @@ export function renderInputDashboard() {
           <div class="mb-8">
             <h1 class="text-3xl text-[#0A2540] mb-2">Thermal Simulation Input</h1>
             <p class="text-gray-600">Configure your composite wall parameters</p>
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+              <input type="file" id="jsonImportInput" accept="application/json,.json" class="hidden" />
+              <button type="button" id="jsonImportBtn" class="${buttonClass({ variant: "outline", className: "gap-2" })}">
+                <i data-lucide="upload" class="w-4 h-4"></i> Load from JSON
+              </button>
+              <button type="button" id="jsonExampleBtn" class="${buttonClass({ variant: "outline", className: "gap-2" })}">
+                <i data-lucide="download" class="w-4 h-4"></i> Example JSON
+              </button>
+            </div>
+            <p id="jsonImportHint" class="text-xs text-gray-500 mt-2 max-w-3xl">
+              Accepts <span class="font-medium text-gray-700">uiDraft</span> (form fields) or
+              <span class="font-medium text-gray-700">simulationParams</span> (solver: layer thickness in meters, k in W/m·K). Optional wrapper:
+              <code class="text-[11px] bg-gray-100 px-1 rounded">{ "version": 1, "uiDraft": { ... } }</code>
+            </p>
+            <div id="jsonImportFeedback" class="text-sm mt-3 hidden" role="status"></div>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -189,6 +326,106 @@ export function renderInputDashboard() {
       const layersEl = document.getElementById("layersContainer");
       const addBtn = document.getElementById("addLayerBtn");
       const runBtn = document.getElementById("runSimBtn");
+      const jsonImportInput = document.getElementById("jsonImportInput");
+      const jsonImportBtn = document.getElementById("jsonImportBtn");
+      const jsonExampleBtn = document.getElementById("jsonExampleBtn");
+      const jsonImportFeedback = document.getElementById("jsonImportFeedback");
+
+      function setJsonFeedback(message, tone) {
+        if (!jsonImportFeedback) return;
+        jsonImportFeedback.textContent = message;
+        jsonImportFeedback.classList.remove("hidden", "text-red-700", "text-green-800", "text-gray-700");
+        if (tone === "ok") jsonImportFeedback.classList.add("text-green-800");
+        else if (tone === "muted") jsonImportFeedback.classList.add("text-gray-700");
+        else jsonImportFeedback.classList.add("text-red-700");
+        jsonImportFeedback.classList.remove("hidden");
+      }
+
+      function hideJsonFeedback() {
+        jsonImportFeedback?.classList.add("hidden");
+        if (jsonImportFeedback) jsonImportFeedback.textContent = "";
+      }
+
+      function assertDraftRunnable(draft) {
+        const parsedHot = parseFloat(draft.hotTemp);
+        const parsedCold = parseFloat(draft.coldTemp);
+        if (!Number.isFinite(parsedHot) || !Number.isFinite(parsedCold)) {
+          throw new Error("Hot and cold sides must be valid numbers.");
+        }
+        for (let i = 0; i < draft.layers.length; i++) {
+          const layer = draft.layers[i];
+          const thicknessNum = parseFloat(layer.thickness);
+          if (!Number.isFinite(thicknessNum) || thicknessNum <= 0) {
+            throw new Error(`Layer ${i + 1}: thickness must be a positive number.`);
+          }
+          const k = parseFloat(layer.conductivity);
+          if (!Number.isFinite(k) || k <= 0) {
+            throw new Error(`Layer ${i + 1}: k must be a positive number.`);
+          }
+        }
+      }
+
+      function applyDraftToForm(draft) {
+        if (hotEl) hotEl.value = draft.hotTemp;
+        if (coldEl) coldEl.value = draft.coldTemp;
+        if (layersEl) {
+          layersEl.innerHTML = draft.layers
+            .map((layer, index) => renderLayerRow(layer, index, draft.layers.length))
+            .join("");
+        }
+        try {
+          if (window.lucide?.createIcons) window.lucide.createIcons();
+        } catch {
+          // ignore icon rendering failures
+        }
+      }
+
+      jsonImportBtn?.addEventListener("click", () => {
+        hideJsonFeedback();
+        jsonImportInput?.click();
+      });
+
+      jsonExampleBtn?.addEventListener("click", () => {
+        hideJsonFeedback();
+        const blob = buildExampleJsonBlob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "thermal-input-example.json";
+        a.rel = "noopener";
+        a.click();
+        URL.revokeObjectURL(url);
+        setJsonFeedback('Downloaded "thermal-input-example.json". Edit and use Load from JSON.', "muted");
+      });
+
+      jsonImportInput?.addEventListener("change", () => {
+        const file = jsonImportInput.files?.[0];
+        jsonImportInput.value = "";
+        if (!file) return;
+
+        if (file.size > MAX_JSON_IMPORT_BYTES) {
+          setJsonFeedback(`File is too large (max ${Math.round(MAX_JSON_IMPORT_BYTES / 1024)} KB).`, "err");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const text = String(reader.result ?? "");
+            const draft = parseImportedJsonText(text);
+            assertDraftRunnable(draft);
+            applyDraftToForm(draft);
+            schedulePersistDraft(readCurrentDraft());
+            refreshDerived();
+            setJsonFeedback("Loaded inputs from JSON.", "ok");
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : "Failed to import JSON.";
+            setJsonFeedback(msg, "err");
+          }
+        };
+        reader.onerror = () => setJsonFeedback("Could not read the file.", "err");
+        reader.readAsText(file);
+      });
 
       function readCurrentDraft() {
         const draft = {

@@ -1,10 +1,21 @@
 import "./styles/index.css";
 import "./styles/app.css";
 
+import { Chart, registerables } from "chart.js";
+import { createIcons, icons } from "lucide";
+
 import { defineRoutes, startRouter, navigate } from "./router.js";
 import { renderNavbar } from "./layouts/navbar.js";
 import { renderDashboardNav, bindDashboardNav } from "./layouts/dashboardNav.js";
-import { apiFetch } from "./lib/api.js";
+import { apiFetch, assertApiConfigured } from "./lib/api.js";
+import { initTelemetry, captureException } from "./lib/telemetry.js";
+
+Chart.register(...registerables);
+window.Chart = Chart;
+window.lucide = { createIcons, icons };
+
+initTelemetry();
+assertApiConfigured();
 
 // Pages (filled in later steps)
 import { renderHomePage } from "./pages/home.js";
@@ -126,6 +137,7 @@ async function renderRoot({ path, handler }) {
     await page.afterRender?.();
   } catch (e) {
     console.error(e);
+    captureException(e, { stage: "route-afterRender", path });
   }
 }
 
@@ -148,8 +160,8 @@ startRouter(renderRoot);
     if (state.uiDraft !== undefined) {
       sessionStorage.setItem("uiDraft", JSON.stringify(state.uiDraft));
     }
-  } catch {
-    // ignore hydration failures
+  } catch (e) {
+    captureException(e, { stage: "hydrate-backend-state" });
   }
 })();
 

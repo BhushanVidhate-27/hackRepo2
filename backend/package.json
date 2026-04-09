@@ -8,5 +8,11 @@
   },
   "scripts": {
     "start": "node server.js"
-  }
+    "dev": "nodemon server.js"
+  },
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

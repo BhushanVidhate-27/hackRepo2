@@ -9,6 +9,10 @@ export default defineConfig({
       reporter: ["text", "html"],
       include: ["src/lib/**/*.js"],
       exclude: ["src/**/*.test.js"],
-    },
+    },server: {
+    proxy: {
+      '/api': 'http://localhost:8080'
+    }
+  }
   },
 });

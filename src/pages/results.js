@@ -90,6 +90,25 @@ export function renderResultsDashboard() {
   const deltaT = params.boundary.T_left - params.boundary.T_inf;
   const rTotal = result.resistance;
   const uValue = rTotal > 0 ? 1 / rTotal : null;
+  const derived = result?.derived || {};
+  const weatherScore = derived.weatherAdjustedScore;
+  const weatherAvailable = Boolean(derived.weatherAvailable);
+  const weatherContext = derived.weatherContext;
+  const weatherReason = derived.weatherScoreReason;
+  const insulationMode = derived.insulationMode;
+  const weatherBreakdown = derived.weatherScoreBreakdown || {};
+  const adjustedFactor =
+    Number(weatherBreakdown.modeMultiplier || 0) * Number(weatherBreakdown.weatherTimeFactor || 0);
+  const adjustedHeatFlux =
+    weatherAvailable && Number.isFinite(adjustedFactor) && adjustedFactor > 0
+      ? result.heat_flux * adjustedFactor
+      : null;
+  const adjustedResistance =
+    weatherAvailable && Number.isFinite(adjustedFactor) && adjustedFactor > 0
+      ? rTotal / adjustedFactor
+      : null;
+  const adjustedUValue =
+    adjustedResistance !== null && adjustedResistance > 0 ? 1 / adjustedResistance : null;
 
   return {
     title: "Simulation Results",
@@ -166,6 +185,72 @@ export function renderResultsDashboard() {
             ${metricCard("U-Value", uValue === null ? "—" : uValue.toFixed(3), "W/m²·K")}
           </div>
 
+          <div class="mb-8 bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-6 border-indigo-200 bg-indigo-50">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-lg text-indigo-900 mb-1">Weather-adjusted score</div>
+                <div class="text-sm text-indigo-800">
+                  Dynamic score based on current weather, local time, and insulation mode.
+                </div>
+              </div>
+              <div class="px-3 py-1 rounded-full bg-white border border-indigo-200 text-sm text-indigo-900">
+                ${weatherAvailable && weatherScore !== null ? Number(weatherScore).toFixed(2) : "Unavailable"}
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="p-3 bg-white rounded-lg border border-indigo-200">
+                <div class="text-xs text-gray-600 mb-1">Mode</div>
+                <div class="text-sm text-[#0A2540]">${escapeHtml(insulationMode?.label || "—")}</div>
+              </div>
+              <div class="p-3 bg-white rounded-lg border border-indigo-200">
+                <div class="text-xs text-gray-600 mb-1">Outdoor Temp</div>
+                <div class="text-sm text-[#0A2540]">${
+                  weatherContext ? `${Number(weatherContext.temperatureC).toFixed(1)}°C` : "—"
+                }</div>
+              </div>
+              <div class="p-3 bg-white rounded-lg border border-indigo-200">
+                <div class="text-xs text-gray-600 mb-1">Local Time / Daypart</div>
+                <div class="text-sm text-[#0A2540]">${
+                  weatherContext
+                    ? `${escapeHtml(String(weatherContext.localTimeIso))} (${escapeHtml(
+                        String(weatherContext.dayPart || "unknown")
+                      )})`
+                    : "—"
+                }</div>
+              </div>
+              <div class="p-3 bg-white rounded-lg border border-indigo-200">
+                <div class="text-xs text-gray-600 mb-1">Factor (mode x weather)</div>
+                <div class="text-sm text-[#0A2540]">${Number(adjustedFactor || 0).toFixed(3)}</div>
+              </div>
+            </div>
+            ${
+              !weatherAvailable
+                ? `<div class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    ${escapeHtml(weatherReason || "Weather data unavailable. Enable location and retry simulation.")}
+                  </div>`
+                : ""
+            }
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            ${metricCard(
+              "Adjusted Heat Flux",
+              adjustedHeatFlux === null ? "—" : adjustedHeatFlux.toFixed(2),
+              "W/m²"
+            )}
+            ${metricCard("Adjusted ΔT", deltaT.toFixed(1), "°C")}
+            ${metricCard(
+              "Adjusted Resistance",
+              adjustedResistance === null ? "—" : adjustedResistance.toFixed(3),
+              "m²·K/W"
+            )}
+            ${metricCard(
+              "Adjusted U-Value",
+              adjustedUValue === null ? "—" : adjustedUValue.toFixed(3),
+              "W/m²·K"
+            )}
+          </div>
+
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-stretch">
             <div class="lg:col-span-2">
               <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-6 border-gray-200 h-full">
@@ -238,7 +323,24 @@ export function renderResultsDashboard() {
           generatedAt: new Date().toISOString(),
           simulationParams: params,
           simulationResult: result,
-          derived: { deltaT, uValue },
+          derived: {
+            deltaT,
+            uValue,
+            weatherContext: {
+              weatherAdjustedScore: weatherScore,
+              weatherAvailable,
+              adjustedValues: {
+                adjustedFactor,
+                adjustedHeatFlux,
+                adjustedResistance,
+                adjustedUValue,
+              },
+              weatherScoreBreakdown: weatherBreakdown,
+              weatherContext,
+              weatherScoreReason: weatherReason,
+              insulationMode,
+            },
+          },
         });
       });
 

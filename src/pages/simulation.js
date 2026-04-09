@@ -4,6 +4,8 @@ import { formatApiError } from "../lib/apiError.js";
 import { recordMaterialUsageFromParams } from "../lib/materialUsage.js";
 import { captureException } from "../lib/telemetry.js";
 import { formatValidationIssues, validateComputePayload } from "../lib/validateComputePayload.js";
+import { getCurrentWeatherContext } from "../lib/weatherContext.js";
+import { computeWeatherAdjustedScore } from "../lib/weatherScore.js";
 import { buttonClass } from "../lib/uiPrimitives.js";
 import { navigate } from "../router.js";
 
@@ -199,6 +201,33 @@ export function renderSimulationScreen() {
         } else {
           delete result.__computedLocally;
         }
+
+        let weatherContext = null;
+        let weatherError = null;
+        try {
+          weatherContext = await getCurrentWeatherContext();
+        } catch (e) {
+          weatherError = e instanceof Error ? e.message : "Unable to fetch weather context.";
+        }
+
+        const weatherScore = computeWeatherAdjustedScore({
+          result,
+          modeId: params.insulationModeId,
+          weatherContext,
+        });
+        result.derived = {
+          ...(result.derived || {}),
+          weatherAdjustedScore: weatherScore.score,
+          weatherAvailable: weatherScore.available,
+          weatherScoreBreakdown: {
+            baseScore: weatherScore.baseScore,
+            modeMultiplier: weatherScore.modeMultiplier,
+            weatherTimeFactor: weatherScore.weatherTimeFactor,
+          },
+          weatherContext: weatherScore.weatherContext,
+          weatherScoreReason: weatherError || weatherScore.reason,
+          insulationMode: weatherScore.mode,
+        };
 
         sessionStorage.setItem(RESULT_KEY, JSON.stringify(result));
 

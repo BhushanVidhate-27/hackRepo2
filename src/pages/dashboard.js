@@ -1,10 +1,38 @@
 import { apiFetch } from "../lib/api.js";
 import { buttonClass, inputClass } from "../lib/uiPrimitives.js";
+import { listDefaultModeOptions } from "../config/insulationModeMultipliers.js";
 import { navigate } from "../router.js";
 
 const DRAFT_KEY = "uiDraft";
 const PARAMS_KEY = "simulationParams";
 const MAX_JSON_IMPORT_BYTES = 256 * 1024;
+const MODE_DEFAULT_KEY = "insulationModeDefault";
+const FALLBACK_MODE_ID = "building_envelope";
+
+function getSavedDefaultModeId() {
+  try {
+    const value = localStorage.getItem(MODE_DEFAULT_KEY);
+    return value && typeof value === "string" ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDefaultModeId(modeId) {
+  try {
+    localStorage.setItem(MODE_DEFAULT_KEY, modeId);
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function clearDefaultModeId() {
+  try {
+    localStorage.removeItem(MODE_DEFAULT_KEY);
+  } catch {
+    // ignore storage failures
+  }
+}
 
 function safeParse(raw) {
   if (!raw) return null;
@@ -31,9 +59,11 @@ function getLayerColor(index) {
 }
 
 function buildInitialState() {
+  const persistedDefault = getSavedDefaultModeId();
   const state = {
     hotTemp: "",
     coldTemp: "",
+    insulationModeId: persistedDefault || FALLBACK_MODE_ID,
     layers: [{ id: "1", thickness: "", conductivity: "", unit: "cm" }],
   };
 
@@ -41,6 +71,9 @@ function buildInitialState() {
   if (draft && typeof draft === "object") {
     if (typeof draft.hotTemp === "string") state.hotTemp = draft.hotTemp;
     if (typeof draft.coldTemp === "string") state.coldTemp = draft.coldTemp;
+    if (typeof draft.insulationModeId === "string" && draft.insulationModeId) {
+      state.insulationModeId = draft.insulationModeId;
+    }
     if (Array.isArray(draft.layers) && draft.layers.length) state.layers = draft.layers;
     return state;
   }
@@ -52,6 +85,9 @@ function buildInitialState() {
   const cold = params?.boundary?.T_inf;
   if (typeof hot === "number") state.hotTemp = String(hot);
   if (typeof cold === "number") state.coldTemp = String(cold);
+  if (typeof params.insulationModeId === "string" && params.insulationModeId) {
+    state.insulationModeId = params.insulationModeId;
+  }
 
   if (Array.isArray(params?.layers) && params.layers.length) {
     state.layers = params.layers.map((l, idx) => ({
@@ -110,6 +146,10 @@ function draftFromUiDraftObject(d) {
     d.hotTemp !== undefined && d.hotTemp !== null && d.hotTemp !== "" ? String(d.hotTemp).trim() : "";
   const coldTemp =
     d.coldTemp !== undefined && d.coldTemp !== null && d.coldTemp !== "" ? String(d.coldTemp).trim() : "";
+  const insulationModeId =
+    d.insulationModeId !== undefined && d.insulationModeId !== null && d.insulationModeId !== ""
+      ? String(d.insulationModeId).trim()
+      : FALLBACK_MODE_ID;
   if (!Array.isArray(d.layers) || !d.layers.length) {
     throw new Error("uiDraft.layers must be a non-empty array.");
   }
@@ -126,7 +166,7 @@ function draftFromUiDraftObject(d) {
     }
     return { id, thickness, conductivity, unit };
   });
-  return { hotTemp, coldTemp, layers };
+  return { hotTemp, coldTemp, insulationModeId, layers };
 }
 
 /**
@@ -163,7 +203,11 @@ function draftFromSimulationParamsObject(p) {
       unit: "cm",
     };
   });
-  return { hotTemp: String(tl), coldTemp: String(tinf), layers };
+  const insulationModeId =
+    p.insulationModeId !== undefined && p.insulationModeId !== null && p.insulationModeId !== ""
+      ? String(p.insulationModeId).trim()
+      : FALLBACK_MODE_ID;
+  return { hotTemp: String(tl), coldTemp: String(tinf), insulationModeId, layers };
 }
 
 /**
@@ -251,6 +295,30 @@ export function renderInputDashboard() {
                     1
                   )}°C</span></div>
                 </div>
+                <div>
+                  <label class="text-sm text-gray-700 mb-2 block">Insulation Mode</label>
+                  <select id="insulationMode" class="${inputClass} text-base">
+                    ${listDefaultModeOptions()
+                      .map(
+                        (mode) =>
+                          `<option value="${escapeHtml(mode.id)}" ${
+                            state.insulationModeId === mode.id ? "selected" : ""
+                          }>${escapeHtml(mode.label)}</option>`
+                      )
+                      .join("")}
+                  </select>
+                  <div class="mt-2 flex items-center gap-2">
+                    <button type="button" id="setModeDefaultBtn" class="${buttonClass({
+                      variant: "outline",
+                      size: "sm",
+                    })}">Set selected as default</button>
+                    <button type="button" id="resetModeDefaultBtn" class="${buttonClass({
+                      variant: "ghost",
+                      size: "sm",
+                    })}">Reset default</button>
+                  </div>
+                  <div id="modeDefaultHint" class="text-xs text-gray-500 mt-2"></div>
+                </div>
               </div>
 
               <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-6">
@@ -330,6 +398,26 @@ export function renderInputDashboard() {
       const jsonImportBtn = document.getElementById("jsonImportBtn");
       const jsonExampleBtn = document.getElementById("jsonExampleBtn");
       const jsonImportFeedback = document.getElementById("jsonImportFeedback");
+      const insulationModeEl = document.getElementById("insulationMode");
+      const setModeDefaultBtn = document.getElementById("setModeDefaultBtn");
+      const resetModeDefaultBtn = document.getElementById("resetModeDefaultBtn");
+      const modeDefaultHint = document.getElementById("modeDefaultHint");
+
+      function modeExists(modeId) {
+        return Array.from(insulationModeEl?.options || []).some((opt) => opt.value === modeId);
+      }
+
+      function renderModeDefaultHint() {
+        if (!modeDefaultHint) return;
+        const saved = getSavedDefaultModeId();
+        if (saved && modeExists(saved)) {
+          const label =
+            Array.from(insulationModeEl?.options || []).find((opt) => opt.value === saved)?.textContent || saved;
+          modeDefaultHint.textContent = `Default mode: ${label}`;
+          return;
+        }
+        modeDefaultHint.textContent = "Default mode: Building envelope (walls / roof)";
+      }
 
       function setJsonFeedback(message, tone) {
         if (!jsonImportFeedback) return;
@@ -368,6 +456,9 @@ export function renderInputDashboard() {
       function applyDraftToForm(draft) {
         if (hotEl) hotEl.value = draft.hotTemp;
         if (coldEl) coldEl.value = draft.coldTemp;
+        if (insulationModeEl && typeof draft.insulationModeId === "string") {
+          insulationModeEl.value = draft.insulationModeId;
+        }
         if (layersEl) {
           layersEl.innerHTML = draft.layers
             .map((layer, index) => renderLayerRow(layer, index, draft.layers.length))
@@ -431,6 +522,7 @@ export function renderInputDashboard() {
         const draft = {
           hotTemp: String(hotEl?.value ?? ""),
           coldTemp: String(coldEl?.value ?? ""),
+          insulationModeId: String(insulationModeEl?.value ?? FALLBACK_MODE_ID),
           layers: Array.from(layersEl.querySelectorAll("[data-layer-row]")).map((row) => {
             const id = row.getAttribute("data-layer-id") || uid();
             const thickness = row.querySelector("[data-field='thickness']")?.value ?? "";
@@ -463,6 +555,16 @@ export function renderInputDashboard() {
 
       hotEl?.addEventListener("input", saveDraft);
       coldEl?.addEventListener("input", saveDraft);
+      insulationModeEl?.addEventListener("change", saveDraft);
+      setModeDefaultBtn?.addEventListener("click", () => {
+        const selected = String(insulationModeEl?.value || FALLBACK_MODE_ID);
+        saveDefaultModeId(selected);
+        renderModeDefaultHint();
+      });
+      resetModeDefaultBtn?.addEventListener("click", () => {
+        clearDefaultModeId();
+        renderModeDefaultHint();
+      });
 
       layersEl?.addEventListener("input", (e) => {
         const target = e.target;
@@ -523,6 +625,7 @@ export function renderInputDashboard() {
         const params = {
           layers: processed,
           boundary: { T_left: parsedHot, T_inf: parsedCold, h: 10 },
+          insulationModeId: String(insulationModeEl?.value ?? FALLBACK_MODE_ID),
           area: 1,
           totalThickness: processed.reduce((s, l) => s + l.thickness, 0),
         };
@@ -533,6 +636,32 @@ export function renderInputDashboard() {
 
       // initial persist/derived refresh
       saveDraft();
+      renderModeDefaultHint();
+
+      // Prefer live catalog labels/IDs when available in public config.
+      fetch("/config/insulation-catalog.v1.json")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((catalog) => {
+          const modes = Array.isArray(catalog?.modes)
+            ? catalog.modes
+                .filter((m) => m && typeof m.id === "string" && typeof m.label === "string")
+                .map((m) => ({ id: m.id, label: m.label }))
+            : [];
+          if (!insulationModeEl || !modes.length) return;
+
+          const selected =
+            insulationModeEl.value || state.insulationModeId || getSavedDefaultModeId() || FALLBACK_MODE_ID;
+          insulationModeEl.innerHTML = modes
+            .map(
+              (m) =>
+                `<option value="${escapeHtml(m.id)}" ${
+                  selected === m.id ? "selected" : ""
+                }>${escapeHtml(m.label)}</option>`
+            )
+            .join("");
+          renderModeDefaultHint();
+        })
+        .catch(() => {});
     },
   };
 }

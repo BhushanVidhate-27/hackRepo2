@@ -1,5 +1,8 @@
 import { apiFetch } from "../lib/api.js";
+import { formatApiError } from "../lib/apiError.js";
 import { recordMaterialUsageFromParams } from "../lib/materialUsage.js";
+import { captureException } from "../lib/telemetry.js";
+import { formatValidationIssues, validateComputePayload } from "../lib/validateComputePayload.js";
 import { buttonClass } from "../lib/uiPrimitives.js";
 import { navigate } from "../router.js";
 
@@ -134,6 +137,14 @@ export function renderSimulationScreen() {
         return;
       }
 
+      const validation = validateComputePayload(params);
+      if (!validation.ok) {
+        const msg = formatValidationIssues(validation.errors);
+        document.getElementById("app").innerHTML = renderError(`Invalid simulation parameters: ${msg}`);
+        bindErrorButtons();
+        return;
+      }
+
       try {
         // Best-effort local usage stats
         try {
@@ -157,7 +168,8 @@ export function renderSimulationScreen() {
 
         navigate("/results");
       } catch (e) {
-        const msg = e?.details?.error || e?.message || "Simulation failed";
+        captureException(e, { stage: "simulation-compute" });
+        const msg = formatApiError(e);
         document.getElementById("app").innerHTML = renderError(msg);
         bindErrorButtons();
       }

@@ -5,14 +5,32 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "prebuild": "node scripts/export-insulation-catalog.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint \"src/**/*.js\" \"scripts/**/*.mjs\"",
+    "format": "prettier --write \"src/**/*.{js,css,html}\" \"*.{js,ts,json}\" \".github/**/*.yml\"",
+    "format:check": "prettier --check \"src/**/*.{js,css,html}\" \"*.{js,ts,json}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "catalog:export": "node scripts/export-insulation-catalog.mjs"
   },
   "dependencies": {
+    "@sentry/browser": "^8.55.0",
+    "chart.js": "^4.4.8",
+    "lucide": "^0.469.0",
     "tw-animate-css": "1.3.8"
   },
   "devDependencies": {
+    "@eslint/js": "^9.21.0",
     "@tailwindcss/vite": "4.1.12",
+    "@vitest/coverage-v8": "^3.0.9",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.1",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3",
     "tailwindcss": "4.1.12",
-    "vite": "^6.4.2"
+    "vite": "^6.4.2",
+    "vitest": "^3.0.9"
   }
 }

@@ -1,0 +1,114 @@
+
+Port 5173 is in use, trying another one...
+
+  VITE v6.4.2  ready in 163 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+10:57:13 AM [vite] Internal server error: Failed to resolve import "chart.js/auto" from "src/main.js". Does the file exis
+10:57:13 AM [vite] Internal server error: Failed to resolve import "chart.js/auto" from "src/main.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/main.js:4:20
+  2  |  import "./styles/app.css";
+  3  |  
+  4  |  import Chart from "chart.js/auto";
+     |                     ^
+  5  |  import { createIcons } from "lucide";
+  6  |  
+      at TransformPluginContext._formatLog (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-D
+      at TransformPluginContext._formatLog (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/de6Dq0.js:42553:41)
+      at TransformPluginContext.error (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6D
+      at TransformPluginContext.error (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:42550:16)
+      at normalizeUrl (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:40529:23)
+      at async file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:40648:37
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/
+      at async TransformPluginContext.transform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:40575:7)
+      at async EnvironmentPluginContainer.transform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chu
+      at async EnvironmentPluginContainer.transform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:42348:18)
+      at async loadAndTransform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:
+      at async loadAndTransform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:35740:27)
+10:57:13 AM [vite] Pre-transform error: Failed to resolve import "chart.js/auto" from "src/main.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/main.js:4:20
+  2  |  import "./styles/app.css";
+  3  |  
+  4  |  import Chart from "chart.js/auto";
+     |                     ^
+  5  |  import { createIcons } from "lucide";
+  6  |  
+10:57:13 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". 
+10:57:13 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/lib/telemetry.js:1:26
+  1  |  import * as Sentry from "@sentry/browser";
+     |                           ^
+  2  |  
+  3  |  let sentryReady = false;
+10:57:13 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". 
+10:57:13 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/lib/telemetry.js:1:26
+  1  |  import * as Sentry from "@sentry/browser";
+     |                           ^
+  2  |  
+  3  |  let sentryReady = false; (x2)
+10:57:13 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". 
+10:57:13 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/lib/telemetry.js:1:26
+  1  |  import * as Sentry from "@sentry/browser";
+     |                           ^
+  2  |  
+  3  |  let sentryReady = false; (x3)
+10:57:42 AM [vite] (client) page reload src/main.js
+10:57:42 AM [vite] Pre-transform error: Failed to resolve import "chart.js" from "src/main.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/main.js:4:39
+  2  |  import "./styles/app.css";
+  3  |  
+  4  |  import { Chart, registerables } from "chart.js";
+     |                                        ^
+  5  |  import { createIcons } from "lucide";
+  6  |  
+10:57:42 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". 
+10:57:42 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/lib/telemetry.js:1:26
+  1  |  import * as Sentry from "@sentry/browser";
+     |                           ^
+  2  |  
+  3  |  let sentryReady = false;
+10:57:42 AM [vite] Internal server error: Failed to resolve import "chart.js" from "src/main.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/main.js:4:39
+  2  |  import "./styles/app.css";
+  3  |  
+  4  |  import { Chart, registerables } from "chart.js";
+     |                                        ^
+  5  |  import { createIcons } from "lucide";
+  6  |  
+      at TransformPluginContext._formatLog (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-D
+      at TransformPluginContext._formatLog (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:42553:41)
+      at TransformPluginContext.error (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6D
+      at TransformPluginContext.error (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:42550:16)
+      at normalizeUrl (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:40529:23)
+      at async file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:40648:37
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/
+      at async TransformPluginContext.transform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:40575:7)
+      at async EnvironmentPluginContainer.transform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chu
+      at async EnvironmentPluginContainer.transform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:42348:18)
+      at async loadAndTransform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:
+      at async loadAndTransform (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:35740:27)
+      at async viteTransformMiddleware (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6
+      at async viteTransformMiddleware (file:///Users/bhushan/hack/hackRepo2/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:37264:24)
+10:57:42 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". 
+10:57:42 AM [vite] (client) Pre-transform error: Failed to resolve import "@sentry/browser" from "src/lib/telemetry.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/bhushan/hack/hackRepo2/src/lib/telemetry.js:1:26
+  1  |  import * as Sentry from "@sentry/browser";
+     |                           ^
+  2  |  
+  3  |  let sentryReady = false;

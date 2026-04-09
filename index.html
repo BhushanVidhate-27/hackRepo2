@@ -3,15 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP via meta: frame-ancestors and upgrade-insecure-requests are not applied reliably here; set those on the HTTP server in production. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://localhost:8080 http://127.0.0.1:8080 https: ws: wss:;"
+    />
     <title>Thermal Analysis Prototype Design</title>
   </head>
 
   <body>
     <div id="app"></div>
 
-    <!-- Additional libraries (non-React) -->
-    <script src="https://unpkg.com/lucide@0.539.0/dist/umd/lucide.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

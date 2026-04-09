@@ -30,11 +30,10 @@ export function renderDashboardNav(activePath) {
                         variant: isActive ? "default" : "ghost",
                         size: "sm",
                         className: isActive
-                          ? "bg-[#3A86FF] text-white"
-                          : "text-[#0A2540] hover:bg-gray-100",
+                          ? "bg-[#3A86FF] text-white h-7 px-2 text-xs"
+                          : "text-[#0A2540] hover:bg-gray-100 h-7 px-2 text-xs",
                       })}"
                     >
-                      <i data-lucide="${item.icon}" class="w-4 h-4 mr-2"></i>
                       ${item.label}
                     </button>
                   </a>
@@ -49,7 +48,7 @@ export function renderDashboardNav(activePath) {
               class="${buttonClass({
                 variant: "ghost",
                 size: "sm",
-                className: "text-[#0A2540] hover:bg-gray-100",
+                className: "text-[#0A2540] hover:bg-gray-100 h-7 px-2 text-xs",
               })}"
             >
               Clear

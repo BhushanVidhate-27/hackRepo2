@@ -2,6 +2,15 @@ import { buttonClass } from "../lib/uiPrimitives.js";
 import { downloadJson } from "../lib/download.js";
 import { navigate } from "../router.js";
 
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function safeParse(raw) {
   if (!raw) return null;
   try {

@@ -1,5 +1,4 @@
 import { apiFetch, apiFetchWithRetry } from "../lib/api.js";
-import { formatApiError } from "../lib/apiError.js";
 import {
   INSULATION_CATALOG_META,
   INSULATION_MODES,
@@ -412,11 +411,10 @@ async function mountComparisonView(root, currentParams, currentResult) {
     `;
     mountComparisonView(root, currentParams, currentResult).catch((e) => {
       captureException(e, { stage: "comparison-mode-change" });
-      const msg = formatApiError(e);
       root.innerHTML = `
         <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-6 border-red-200 bg-red-50">
           <div class="text-lg text-red-900 mb-2">Comparison failed</div>
-          <div class="text-sm text-red-800">${escapeHtml(msg)}</div>
+          <div class="text-sm text-red-800">Comparison could not be refreshed right now. Please try again.</div>
         </div>
       `;
     });
@@ -735,11 +733,10 @@ async function mountComparisonView(root, currentParams, currentResult) {
         await mountComparisonView(root, currentParams, currentResult);
       } catch (e) {
         captureException(e, { stage: "comparison-initial" });
-        const msg = formatApiError(e);
         root.innerHTML = `
           <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-6 border-red-200 bg-red-50">
             <div class="text-lg text-red-900 mb-2">Comparison failed</div>
-            <div class="text-sm text-red-800">${escapeHtml(msg)}</div>
+            <div class="text-sm text-red-800">Comparison is temporarily unavailable. Please retry.</div>
           </div>
         `;
       }

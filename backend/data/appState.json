@@ -5,18 +5,19 @@
     "layers": [
       {
         "id": "1",
-        "thickness": "1",
+        "thickness": "10",
         "conductivity": "1",
         "unit": "cm"
       }
     ]
   },
-  "updatedAt": "2026-04-09T05:22:57.834Z",
+  "updatedAt": "2026-04-09T07:37:58.142Z",
   "simulationParams": {
     "layers": [
       {
         "thickness": 0.01,
-        "k": 1
+        "k": 0.007,
+        "material": "Vacuum insulation panel (VIP)"
       }
     ],
     "boundary": {
@@ -28,11 +29,11 @@
     "totalThickness": 0.01
   },
   "simulationResult": {
-    "resistance": 0.11,
-    "heat_flux": 1636.3636363636363,
+    "resistance": 1.5285714285714287,
+    "heat_flux": 117.75700934579439,
     "temperatures": [
       200,
-      183.63636363636363
+      31.775700934579447
     ]
   },
   "reportSnapshot": {

@@ -204,7 +204,17 @@ async function mountComparisonView(root, currentParams, currentResult) {
     ),
   };
 
-  const idealResult = await apiFetch("/api/compute", { method: "POST", json: idealParams });
+  let idealResult = null;
+  try {
+    idealResult = await apiFetchWithRetry("/api/compute", { method: "POST", json: idealParams });
+  } catch {
+    idealResult = null;
+  }
+  if (!isValidComputeShape(idealResult, idealParams.layers.length)) {
+    idealResult = stripLocalMeta(computeWallLocal(idealParams));
+  } else {
+    idealResult = stripLocalMeta(idealResult);
+  }
 
   const aFlux = currentResult.heat_flux;
   const bFlux = idealResult.heat_flux;

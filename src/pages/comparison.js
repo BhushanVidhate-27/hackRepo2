@@ -1,4 +1,5 @@
-import { apiFetch } from "../lib/api.js";
+import { apiFetch, apiFetchWithRetry } from "../lib/api.js";
+import { computeWallLocal, DEFAULT_MATERIALS } from "../lib/localHeatCompute.js";
 import { buttonClass } from "../lib/uiPrimitives.js";
 import { readMaterialUsageStats } from "../lib/materialUsage.js";
 import { navigate } from "../router.js";
@@ -48,6 +49,19 @@ function buildTempProfile(params, result) {
   return data;
 }
 
+function isValidComputeShape(result, layerCount) {
+  if (!result || typeof result !== "object") return false;
+  if (typeof result.heat_flux !== "number" || typeof result.resistance !== "number") return false;
+  if (!Array.isArray(result.temperatures)) return false;
+  return result.temperatures.length === layerCount + 1;
+}
+
+function stripLocalMeta(result) {
+  if (!result || typeof result !== "object") return result;
+  const { __computedLocally: _c, ...rest } = result;
+  return rest;
+}
+
 function renderHeader() {
   return `
     <div class="mb-8">
@@ -58,8 +72,6 @@ function renderHeader() {
 }
 
 export function renderComparisonScreen() {
-  const currentParams = safeParse(sessionStorage.getItem("simulationParams"));
-  const currentResult = safeParse(sessionStorage.getItem("simulationResult"));
   const usage = readMaterialUsageStats();
 
   return {
@@ -75,6 +87,9 @@ export function renderComparisonScreen() {
     async afterRender() {
       const root = document.getElementById("compareRoot");
       if (!root) return;
+
+      let currentParams = safeParse(sessionStorage.getItem("simulationParams"));
+      let currentResult = safeParse(sessionStorage.getItem("simulationResult"));
 
       if (!currentParams || !currentResult) {
         root.innerHTML = `
@@ -94,20 +109,45 @@ export function renderComparisonScreen() {
       `;
 
       try {
-        const materials = await apiFetch("/api/materials");
-        const entries = Object.entries(materials || {}).filter(([, v]) => typeof v === "number" && v > 0);
+        let materials = {};
+        try {
+          materials = (await apiFetch("/api/materials")) || {};
+        } catch {
+          materials = {};
+        }
+        if (!Object.keys(materials).length) materials = { ...DEFAULT_MATERIALS };
+
+        let entries = Object.entries(materials || {}).filter(([, v]) => typeof v === "number" && v > 0);
         if (!entries.length) throw new Error("No materials available in backend materials config.");
 
         const [bestName, bestK] = entries.reduce((best, cur) => (cur[1] < best[1] ? cur : best), entries[0]);
 
         const layers = currentParams.layers || [];
+        const layerCount = layers.length;
+        if (!isValidComputeShape(currentResult, layerCount)) {
+          currentResult = stripLocalMeta(computeWallLocal(currentParams, materials));
+        } else {
+          currentResult = stripLocalMeta(currentResult);
+        }
+
         const insulationIndex = layers.length >= 2 ? 1 : 0;
         const idealParams = {
           ...currentParams,
           layers: layers.map((l, idx) => (idx === insulationIndex ? { ...l, k: bestK, material: bestName } : l)),
         };
 
-        const idealResult = await apiFetch("/api/compute", { method: "POST", json: idealParams });
+        const idealLayerCount = (idealParams.layers || []).length;
+        let idealResult = null;
+        try {
+          idealResult = await apiFetchWithRetry("/api/compute", { method: "POST", json: idealParams });
+        } catch {
+          idealResult = null;
+        }
+        if (!isValidComputeShape(idealResult, idealLayerCount)) {
+          idealResult = stripLocalMeta(computeWallLocal(idealParams, materials));
+        } else {
+          idealResult = stripLocalMeta(idealResult);
+        }
 
         const aFlux = currentResult.heat_flux;
         const bFlux = idealResult.heat_flux;

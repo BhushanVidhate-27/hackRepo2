@@ -138,10 +138,11 @@ startRouter(renderRoot);
     const state = res?.state;
     if (!state) return;
 
-    if (state.simulationParams !== undefined) {
+    // Do not overwrite in-memory session with stale server state mid-session.
+    if (state.simulationParams !== undefined && !sessionStorage.getItem("simulationParams")) {
       sessionStorage.setItem("simulationParams", JSON.stringify(state.simulationParams));
     }
-    if (state.simulationResult !== undefined) {
+    if (state.simulationResult !== undefined && !sessionStorage.getItem("simulationResult")) {
       sessionStorage.setItem("simulationResult", JSON.stringify(state.simulationResult));
     }
     if (state.uiDraft !== undefined) {

@@ -1,4 +1,5 @@
 import { apiFetch } from "../lib/api.js";
+import { computeWallLocal } from "../lib/localHeatCompute.js";
 import { buttonClass } from "../lib/uiPrimitives.js";
 import { navigate } from "../router.js";
 
@@ -12,9 +13,6 @@ function safeParse(raw) {
 }
 
 export function renderLayerVisualization() {
-  const params = safeParse(sessionStorage.getItem("simulationParams"));
-  const result = safeParse(sessionStorage.getItem("simulationResult"));
-
   return {
     title: "Layer Visualization",
     html: `
@@ -33,6 +31,10 @@ export function renderLayerVisualization() {
       const root = document.getElementById("vizRoot");
       if (!root) return;
 
+      let params = safeParse(sessionStorage.getItem("simulationParams"));
+      let result = safeParse(sessionStorage.getItem("simulationResult"));
+      const layerCount = (params?.layers || []).length;
+
       if (!params || !result) {
         root.innerHTML = `
           <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-6 border-gray-200">
@@ -50,7 +52,30 @@ export function renderLayerVisualization() {
         // optional
       }
 
-      const view = buildView(params, result, materials);
+      const tempsOk =
+        Array.isArray(result.temperatures) && result.temperatures.length === layerCount + 1;
+      if (!tempsOk) {
+        try {
+          const { __computedLocally, ...computed } = computeWallLocal(params, materials || {});
+          result = computed;
+          sessionStorage.setItem("simulationResult", JSON.stringify(result));
+        } catch {
+          // leave result as-is; buildView will fail below
+        }
+      }
+
+      let view = layerCount ? buildView(params, result, materials) : null;
+      if (!view && layerCount) {
+        try {
+          const { __computedLocally, ...computed } = computeWallLocal(params, materials || {});
+          result = computed;
+          sessionStorage.setItem("simulationResult", JSON.stringify(result));
+          view = buildView(params, result, materials);
+        } catch {
+          view = null;
+        }
+      }
+
       if (!view) {
         root.innerHTML = `
           <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-6 border-gray-200">
@@ -217,6 +242,12 @@ export function renderLayerVisualization() {
       `;
 
       document.getElementById("proceedCompareBtn")?.addEventListener("click", () => navigate("/comparison"));
+
+      try {
+        window.lucide?.createIcons?.();
+      } catch {
+        // ignore
+      }
     },
   };
 }

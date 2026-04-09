@@ -10,8 +10,18 @@ function normalizeBaseUrl(base) {
 
 function resolveApiBaseUrl() {
   const envBase = import.meta?.env?.VITE_API_BASE_URL;
-  if (envBase) return normalizeBaseUrl(envBase);
-  return "";
+  const normalized = normalizeBaseUrl(envBase);
+  if (!normalized) return "";
+
+  // Prevent mixed-content failures when an HTTPS deployment is built
+  // with a local HTTP API URL (e.g. http://localhost:8080).
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    const isLocalHttpBase =
+      normalized.startsWith("http://localhost:") || normalized.startsWith("http://127.0.0.1:");
+    if (isLocalHttpBase) return "";
+  }
+
+  return normalized;
 }
 
 /** Exposed for health checks and startup logging. */
@@ -29,7 +39,8 @@ export function assertApiConfigured() {
   const isLocal =
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-  if (isProd && !base && !isLocal) {
+  const sameOriginAvailable = typeof window !== "undefined";
+  if (isProd && !base && !isLocal && !sameOriginAvailable) {
     console.error(
       "[thermal-app] VITE_API_BASE_URL is not set. Configure it at build time for this deployment host."
     );
@@ -44,7 +55,8 @@ function ensureCanCallApi() {
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
   const isDev = Boolean(import.meta.env?.DEV);
-  if (!base && !isLocal && !isDev) {
+  const sameOriginAvailable = typeof window !== "undefined";
+  if (!base && !isLocal && !isDev && !sameOriginAvailable) {
     const err = new Error("API is not configured for this host. Set VITE_API_BASE_URL at build time.");
     err.code = "API_NOT_CONFIGURED";
     throw err;
